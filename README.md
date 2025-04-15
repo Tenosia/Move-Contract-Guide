@@ -9,6 +9,4 @@ This is my public learning log where I:
 - Share mini-lessons learned (with annotations)
 - Track progress as I explore Sui/Aptos development
 
-Think of it as a developer's notebook - not polished docs, but raw insights.
-
-## 📂 Repository Structure
+Think of it as a developer's notebook - not polished docs, but raw insight
