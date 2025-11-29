@@ -1,28 +1,27 @@
-/*
-#[test_only]
-module hello_world::hello_world_tests;
-// uncomment this line to import the module
-// use hello_world::hello_world;
-
-const ENotImplemented: u64 = 0;
-
-#[test]
-fun test_hello_world() {
-    // pass
-}
-
-#[test, expected_failure(abort_code = ::hello_world::hello_world_tests::ENotImplemented)]
-fun test_hello_world_fail() {
-    abort ENotImplemented
-}
-*/
-
 #[test_only]
 module hello_world::hello_world_tests;
 
-use hello_world::hello_world;
+use hello_world::hello_world::{Self, HelloWorldObject};
+use sui::test_scenario;
+use sui::transfer;
+use std::string;
 
 #[test]
-fun test_hello_world() {
-    assert!(hello_world::hello_world() == b"Hello, World!".to_string(), 0);
+fun test_mint_and_get_text() {
+    let sender = @0xBABE;
+    let mut scenario = test_scenario::begin(sender);
+    
+    {
+        hello_world::mint(test_scenario::ctx(&mut scenario));
+    };
+    
+    scenario.next_tx(sender);
+    {
+        let obj = test_scenario::take_from_sender<HelloWorldObject>(&scenario);
+        let text = hello_world::get_text(&obj);
+        assert!(string::utf8(b"Hello, World!") == text, 0);
+        test_scenario::return_to_sender(&mut scenario, obj);
+    };
+    
+    test_scenario::end(scenario);
 }
