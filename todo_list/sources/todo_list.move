@@ -1,50 +1,51 @@
-/*
-/// Module: todo_list
-module todo_list::todo_list;
-*/
-
 // For Move coding conventions, see
 // https://docs.sui.io/concepts/sui-move-concepts/conventions
 
+module todo_list::todo_list {
+    use sui::object::{Self, UID};
+    use sui::transfer;
+    use sui::tx_context::{Self, TxContext};
+    use std::string;
+    use std::vector;
 
-/// Module: todo_list
-module todo_list::todo_list;
+    /// List of todos. Can be managed by the owner and shared with others.
+    public struct TodoList has key, store {
+        id: UID,
+        items: vector<string::String>
+    }
 
-use std::string::String;
+    /// Create a new todo list and transfer it to the sender.
+    public entry fun create(ctx: &mut TxContext) {
+        let list = TodoList {
+            id: object::new(ctx),
+            items: vector[]
+        };
+        transfer::public_transfer(list, tx_context::sender(ctx));
+    }
 
-/// List of todos. Can be managed by the owner and shared with others.
-public struct TodoList has key, store {
-    id: UID,
-    items: vector<String>
-}
+    /// Add a new todo item to the list.
+    public entry fun add(list: &mut TodoList, item: vector<u8>) {
+        list.items.push_back(string::utf8(item));
+    }
 
-/// Create a new todo list.
-public fun new(ctx: &mut TxContext): TodoList {
-    let list = TodoList {
-        id: object::new(ctx),
-        items: vector[]
-    };
+    /// Remove a todo item from the list by index.
+    public entry fun remove(list: &mut TodoList, index: u64) {
+        vector::remove(&mut list.items, index);
+    }
 
-    (list)
-}
+    /// Delete the list and the capability to manage it.
+    public entry fun delete(list: TodoList) {
+        let TodoList { id, items: _ } = list;
+        object::delete(id);
+    }
 
-/// Add a new todo item to the list.
-public fun add(list: &mut TodoList, item: String) {
-    list.items.push_back(item);
-}
+    /// Get the number of items in the list.
+    public fun length(list: &TodoList): u64 {
+        vector::length(&list.items)
+    }
 
-/// Remove a todo item from the list by index.
-public fun remove(list: &mut TodoList, index: u64): String {
-    list.items.remove(index)
-}
-
-/// Delete the list and the capability to manage it.
-public fun delete(list: TodoList) {
-    let TodoList { id, items: _ } = list;
-    id.delete();
-}
-
-/// Get the number of items in the list.
-public fun length(list: &TodoList): u64 {
-    list.items.length()
+    /// Get an item at a specific index.
+    public fun get_item(list: &TodoList, index: u64): string::String {
+        *vector::borrow(&list.items, index)
+    }
 }
